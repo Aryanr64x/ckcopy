@@ -7,23 +7,36 @@ const bcrypt=require('bcrypt')
 const jwt=require('jsonwebtoken');
 const user = require('../../models/user');
 const multer=require('multer')
-
-
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const jwtSecret=process.env.JWT_SECRET; 
 const adminLayout='../views/layouts/admin.ejs';
 /*
 MiddleWare to upload image
 */
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/images');
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, 'public/images');
+//   },
+//   filename: function (req, file, cb) {
+//     // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+//     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+//   }
+// }) 
+cloudinary.config({
+  cloud_name: "dhaoqwfqj",
+  api_key: "159915972188697",
+  api_secret: "-sCog20wVfPGQUVr_fo0rj6aNBk",
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'post_images', // Folder name in Cloudinary
+    allowed_formats: ['jpg', 'jpeg', 'png'], // Supported formats
   },
-  filename: function (req, file, cb) {
-    // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
-}) 
+});
 
 const upload = multer({ storage: storage })
 
@@ -223,7 +236,7 @@ router.post('/add-post',authMiddleware,upload.single('image'),async(req,res)=>{
 
         try {
             const newPost=new post({
-               image:`images/${req.file.filename}`,
+               image:req.file.path,
                title:data.title,
                price:data.price,
                number:data.number,
